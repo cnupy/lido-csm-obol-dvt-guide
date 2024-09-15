@@ -20,7 +20,7 @@ Creating a trust-minimised distributed Valdator cluster requires a multi-sig wal
 
 ## The Charon client
 
-`Charon` (pronounced 'kharon') is the software that allows validators to be run on a group of independent nodes - a cluster. A complete multi-container `Docker` setup including execution client, consensus client, MEV-Boost and the `Charon` client can be found in this repository https://github.com/ObolNetwork/charon-distributed-validator-cluster and the first step is to clone it:
+`Charon` (pronounced 'kharon') is the software that allows validators to be run on a group of independent nodes - a cluster. A complete multi-container `Docker` setup including execution client, consensus client, MEV-Boost and the `Charon` client can be found in this repository https://github.com/ObolNetwork/charon-distributed-validator-node and the first step is to clone it:
 
 ```
 git clone https://github.com/ObolNetwork/charon-distributed-validator-node.git
@@ -213,7 +213,7 @@ MEV stands for Maximal Extractable Value. This is the additional value that can 
 
 ### Configuring the MEV-boost client
 
-To configure MEV-boost each cluster memeber needs to edit the `.env` file and set the `BUILDER_API_ENABLED=true` and `MEVBOOST_RELAYS=` to the URL of at least one of Lido's approved MEV relays [here](https://enchanted-direction-844.notion.site/6d369eb33f664487800b0dedfe32171e?v=985cb7e521de43d78c67b7ad29adec84). Multiple relays must be separated by a comma. **The use of unapproved relays is strictly forbidden! All cluster members must use identical configurations to avoid missing block proposals due to a lack of consensus!**
+To configure MEV-boost each cluster memeber needs to edit the `.env` file and set the `BUILDER_API_ENABLED=true` and `MEVBOOST_RELAYS=` to the URL of at least one of Lido's approved MEV relays [here](https://enchanted-direction-844.notion.site/6d369eb33f664487800b0dedfe32171e?v=985cb7e521de43d78c67b7ad29adec84). Multiple relays must be separated by a comma. **The use of unapproved relays is strictly forbidden! All cluster members must use identical configurations (same relays) to avoid missing block proposals due to a lack of consensus!**
 
 ## Starting the Node
 
