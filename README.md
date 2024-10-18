@@ -1,83 +1,45 @@
-# Comprehensive guide to setting up a distributed Lido CSM validator cluster with Obol Network
+# Deploying an Obol DV on Lido CSM using Linux (Early Access)
 
-The [Community Staking Module](https://operatorportal.lido.fi/modules/community-staking-module) (CSM) is the first permissionless module in the [Lido protocol](https://lido.fi), allowing anyone to start running validators on the Ethereum blockchain with much greater capital efficiency compared to running a regular ("vanilla") Ethereum validator.
+To start, we assume your hardware and Linux OS are running and that you've installed pre-requisites. We also assume you're familiar with the [Community Staking Module](https://operatorportal.lido.fi/modules/community-staking-module) (CSM) and operating a node using [Obol DVT](https://obol.org/). Also, cluster and squad are used interchangabely within this document. 
 
-A distributed validator ([DVT](https://ethereum.org/en/staking/dvt/)) is an Ethereum validator that runs on more than one node. [Obol Network](https://obol.org/) is a set of tools providing permissionless access to running distributed validators.
-
-This tutorial uses the Holesky testnet for demonstration purposes, but the same steps can be applied to the mainnet.
-
-# Hardware & system requirements
-
- - CPU: Quad-core
- - RAM: 16GB 
- - Storage: 512GB NVME SSD (For mainnet at least 2TB)
-
-A full guide to setting up your operating system can be found [here](https://dvt-homestaker.stakesaurus.com/) or [here](https://docs.ethstaker.cc/ethstaker-knowledge-base). For this tutorial, I'm assuming that all cluster members are running Linux with Git and Docker installed, and have properly secured their servers.
+This guide uses Holesky testnet. If deploying on mainnet, please adjust required addresses. 
+<br><br><br><br>
 
 # Getting started
 
-Creating a trust-minimised distributed Valdator cluster requires a multi-sig wallet for management, a split contract to distribute rewards to operators, and the client software needed to run the Obol DVT - `Charon`. Operators also need a full Ethereum node with an execution and consensus client of their choice, and the MEV-boost client configured with at least one of the Lido approved relays.
+This guide will be broken down into 3 main steps:
 
-## The Charon client
+### Part 1: Create cluster multi-sig + 0xSplits contract
+### Part 2: Use Obol Launchpad + CLI to create the cluster
+### Part 3: Deploy the validator to CSM 
 
-`Charon` (pronounced 'kharon') is the software that allows validators to be run on a group of independent nodes - a cluster. A complete multi-container `Docker` setup including execution client, consensus client, MEV-Boost and the `Charon` client can be found in this repository https://github.com/ObolNetwork/charon-distributed-validator-node and the first step is to clone it:
+In this guide we'll be using CSM with `extendedManagerPermissions` where the `managerAddress` is set to the cluster multi-sig and the `rewardAddress` is set to the 0xSplits contract. 
+<br><br><br><br>
 
-```
-git clone https://github.com/ObolNetwork/charon-distributed-validator-node.git
-```
-
-Make sure your user has the `docker` role. If not you can use this command to add it:
-
-```
-sudo usermod -a -G docker $USER
-```
-
-You will then need to exit the ssh session and log in again.
-
-Finally, you will need to create the `Charon` data folder and the `.env` configuration file:
-
-```
-cd charon-distributed-validator-node
-mkdir .charon
-cp .env.sample .env
-```
-
-Edit the `.env` in your favourite editor and set the variable `NETWORK=holesky`.
-
-## Preparing the ENR (Ethereum Node Record)
-
-All cluster members will need an ENR (Ethereum Node Record) to connect to the Obol Network. To create an ENR the operator can use this code:
-
-```
-docker compose run --rm charon create enr
-```
-
-![image](https://hackmd.io/_uploads/HJeGRFBhR.png)
-
-## Creating the DV cluster wallet
+# Part 1: Creating the Cluster multi-sig + 0xSplits Contract
 
 Detailed instructions on how to create a Safe Wallet can be found [here](https://help.safe.global/en/articles/40868-creating-a-safe-on-a-web-browser). 
 The Holesky Testnet Safe deployment can be found at this address: https://holesky-safe.protofire.io
 
-One of the cluster members should obtain the signer addresses from all the cluster members, then connect his signer wallet and choose to create a new Safe. 
+Squad leader should obtain the signer addresses from all the cluster members, then connect their signer wallet and choose to create a new Safe. 
 
 ![chrome_ofxRcHQItb](https://hackmd.io/_uploads/HJImiiVh0.png)
 
-After giving the Safe a name and selecting the Holesky network, he continues by clicking the `Next` button.
+After giving the Safe a name and selecting the Holesky network, they continue by clicking the `Next` button.
 
 ![chrome_0n8nPU5G5q](https://hackmd.io/_uploads/SkrQijV2R.png )
 
-Then he adds all the signer addresses of the cluster members and proceeds to the final step by clicking the `Next` button.
+Then add all the signer addresses of the cluster members, select a threshold, and proceed to the final step by clicking the `Next` button.
 
 ![chrome_qvPajGtE0N](https://hackmd.io/_uploads/S18mijE3A.png)
 
-Finally, he sends the transaction to create the Safe by clicking on the `Create` button.
+Finally, send the transaction to create the Safe by clicking on the `Create` button.
 
 ![chrome_BfjGLxjtYM](https://hackmd.io/_uploads/SkrmjoV3C.png)
 
 ## Creating the reward split contract
 
-One of the cluster members should obtain the reward addresses from all the cluster members. Then he should open https://app.splits.org and select to create a `new contract`. Then he should select `Holesky` for the network.
+Squad leader should obtain the reward addresses from all the cluster members. Then should open https://app.splits.org and select to create a `new contract`. Then he should select `Holesky` for the network.
 
 ![image](https://hackmd.io/_uploads/B1VDt6S2A.png)
 
@@ -85,27 +47,56 @@ Select `Split` for the contract type.
 
 ![image](https://hackmd.io/_uploads/BknFFprh0.png)
 
-Add the reward addresses of all cluster members. Then he can choose whether the contract is immutable (recommended option), whether he wants to sponsor the maintainers of [splits.org](https://splits.org), and whether there is a distribution bounty so that third parties can distribute the rewards in exchange for a small fee.
+Add the reward addresses of all cluster members. Then choose whether the contract is immutable (recommended option), whether to sponsor the maintainers of [splits.org](https://splits.org), and whether there is a distribution bounty so that third parties can distribute the rewards in exchange for a small fee.
 
 ![image](https://hackmd.io/_uploads/H1q0KaS20.png)
 
 Finally, click the `Create Split` button, execute the transaction and share the created split contract with all cluster members for review.
+<br><br><br><br>
 
-## Creating the DV cluster
 
-The official Obol [documentation](https://docs.obol.org/docs/start/quickstart_group) contains detailed instructions on setting up a distributed cluster.
+# Part 2: Use Obol Launchpad + CLI to create the cluster
 
-### Method 1 - Creating the cluster using the DV Launchpad
+`Charon` is the software that enables validators to be run on a group of independent nodes - a cluster or squad. A complete multi-container `Docker` setup including execution client, consensus client, validator client, MEV-Boost and the `Charon` client can be found in this repository https://github.com/ObolNetwork/charon-distributed-validator-node. 
+<br><br>
 
-Unfortunately, it is possible to create a distributed cluster using the DV Launchpad only for a single validator key, as the DV Launchpad does not allow you to set the custom Withdrawal and Fee Recipient addresses when creating a cluster with more than one, which is a requirement for Lido CSM.
+### Step 1: Clone the repo and add give $USER permissions
 
-#### Creating the cluster configuration
+```
+git clone https://github.com/ObolNetwork/charon-distributed-validator-node.git
+```
+```
+sudo usermod -a -G docker $USER
+```
 
-One of the cluster members opens the Holesky DV Launchpad at this address - https://holesky.launchpad.obol.org, then connects his wallet and chooses to create a `Cluster with a group` button.
+You will then need to exit the ssh session and log in again.
+<br><br>
+
+### Step 2: Create ENR and Backup your Private Key
+
+Change into the CDVN directory:
+```
+cd charon-distributed-validator-node
+```
+Use docker to create an ENR
+
+```
+docker run --rm -v "$(pwd):/opt/charon" obolnetwork/charon:v1.1.1 create enr
+```
+### Back up the private key located in `.charon/charon-enr-private-key`
+
+![Screenshot 2024-10-18 at 12 28 23 PM](https://github.com/user-attachments/assets/6bf9f7ac-6b9f-4a8b-b15a-49b5d2cb3c56)
+<br><br>
+
+### Step 3: Create the DV cluster configuration using the Launchpad
+
+With CSM launching soon, we've inegrated a custom CSM configuration into the launchpad. Choosing this configuration allows you to create up to 12 validator keys (CSM EA Limit) with Lido's required withdrawal and fee recipient addresses.
+
+To start, the squad leader opens the [Holesky DV Launchpad](https://holesky.launchpad.obol.org), then connects  their wallet and chooses `Create a cluster with a group`.
 
 ![image](https://hackmd.io/_uploads/B1arp242R.png)
 
-Then he clicks on the `Getting Started` button on the next page.
+Then click `Get Started` button on the next page.
 
 ![chrome_WW8rTcaqeQ](https://hackmd.io/_uploads/H1LXijNnR.png)
 
@@ -113,43 +104,25 @@ Accepts all the necessary advisories and signs the confirmation.
 
 ![chrome_rQIeibZpcj](https://hackmd.io/_uploads/HkL7ioN20.png)
 
-On the next page is where the cluster is configured. First, he should select the cluster name and size. Then he enters all cluster members' signer addresses,
+Cluster configuration begins here. First, select the cluster name and size. Then enters all cluster members signer addresses.
 
-![chrome_HeH3K82wfh](https://hackmd.io/_uploads/S1HXjsE30.png)
+![Screenshot 2024-10-18 at 12 56 24 PM](https://github.com/user-attachments/assets/0ccd49fb-3faa-4752-8599-d2210db3daed)
 
-sets the `validators` field to `1` and in the `Withdrawal Configuration` section selects the `Custom` tab, then set the `Withdrawal Address` to Lido's `Withdrawal Vault` - `0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9` and `Fee Recipient` to Lido's `Execution Layer Rewards Vault` - `0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8` as per Lido [documentation](https://docs.lido.fi/deployed-contracts/holesky/). Finally, he clicks on the `Create cluster configuration` button.
+Next, select the number of validators (up to 12 for CSM EA) to deploy. Enter the complete Public ENR which was generated during step 2 above, this includes the enr prefix (`enr:-HW4QLS48i.........`). In the `Withdrawal Configuration` field, select `LIDO CSM`. This will automatically fill in the required Withdrawal Address and Fee Recipient Addresss per [Lido Documentation](https://operatorportal.lido.fi/modules/community-staking-module#block-d8e94f551b2e47029a54e6cedea914a7) Finally, click on the `Create cluster configuration` button.
 
-![chrome_Os8B70haUT](https://hackmd.io/_uploads/r1rXjsEhC.png)
+![Screenshot 2024-10-18 at 2 54 38 PM](https://github.com/user-attachments/assets/794176f5-3ea1-4669-bdfb-87b1aff36bc8)
 
-Lastly, he shares the cluster configuration link with the other cluster members.
+Lastly, share the cluster configuration link with the other cluster members.
 
 ![chrome_wHk3z8Tz9S](https://hackmd.io/_uploads/By8XoiE2R.png)
+<br><br>
 
-#### Distributed Key Generation
+### Step 4: Distributed Key Generation
 
-All cluster members need to open the configuration link, connect their wallet, and check the cluster size, the threshold and the number of validators. 
+All cluster members need to open the cluster invite link, connect their wallet, accept all necessary advisories, and verify the cluster configuration. Each squad member will need to input their ENR, so see steps 1 and 2 above.
 
-![chrome_UjIAAKB8oi](https://hackmd.io/_uploads/r1I7jjVh0.png)
+![Screenshot 2024-10-18 at 3 00 47 PM](https://github.com/user-attachments/assets/2e759026-2376-4777-9765-c62081d218f0)
 
-Then check that the `Withdrawal Address` mach Lido's `Withdrawal Vault` - `0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9` and the `Fee Recipient` mach Lido's Execution Layer Rewards Vault - `0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8` as per Lido [documentation](https://docs.lido.fi/deployed-contracts/holesky/), and finally click the `Getting Started` button.
-
-![chrome_J8CvZeGsub](https://hackmd.io/_uploads/HyBQjiVhA.png)
-
-Accept all the necessary advisories.
-
-![image](https://hackmd.io/_uploads/B1D5DTN2R.png)
-
-On the `Accept configuration` page, each cluster member submits its ENR (the whole address including the `enr:` prefix).
-
-![image](https://hackmd.io/_uploads/HkmCO6NhR.png)
-
-Finally, confirms and signs the configuration...
-
-![image](https://hackmd.io/_uploads/BkhtYa4hR.png)
-
-Then wait for all the other cluster members to accept it.
-
-![image](https://hackmd.io/_uploads/B1wgcTV3A.png)
 
 Once all members confirm the configuration they will see the `continue` button.
 
@@ -157,65 +130,31 @@ Once all members confirm the configuration they will see the `continue` button.
 
 On the next page, they will find a CLI command.
 
-![image](https://hackmd.io/_uploads/Bytw6pE3A.png)
+![Screenshot 2024-10-18 at 3 17 33 PM](https://github.com/user-attachments/assets/a207ef9c-bd16-4b93-afbd-2a18f35f11de)
 
-After executing it they should wait for all the other cluster members to connect and complete the DKG ceremony.
 
-![image](https://hackmd.io/_uploads/S1zcThHn0.png)
+All members need to syncronisly complete this step. Go back to terminal, make sure you're in the correct directory:
 
-A `cluster-lock.json` file is created in the `.charon` folder as well as the `deposit-data.json` file and the `validator_keys` folder containing each operator's partial key signatures for the validators.
+```
+cd charon-distributed-validator-node
+```
+After copying and pasting the command they should wait for all the other squad members to connect and complete the DKG ceremony.
+
+![Screenshot 2024-10-18 at 1 10 25 PM](https://github.com/user-attachments/assets/55e7b010-d669-4c7f-86cd-f190c5bd9f3a)
+
+
+A `cluster-lock.json` file is created in the `.charon` folder as well as the `deposit-data.json` file and the `validator_keys` folder. This contains each operator's partial key signatures for the validators.
 
 **At this point, each operator must make a backup of the `.charon` folder and keep it safe, as validator keys can't be recreated.**
+<br><br>
 
-### Method 2 - Creating the cluster using the Charon CLI
 
-To create a cluster with more than one validator, the `Charon` CLI is required. One of the cluster members creates the cluster definition file. To do this, he must obtain the ENRs of all the members. Once all the ENRs have been collected, the following command is executed. The 'Withdrawal Address' argument must be set to the Lido 'Withdrawal Vault' - `0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9` and the 'Fee Recipient' must be set to the Lido 'Execution Layer Rewards Vault' - `0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8` as per Lido [documentation](https://docs.lido.fi/deployed-contracts/holesky/):
+### Step 5: Configuring the MEV-boost client
 
-```
-docker compose run --rm charon create dkg \
---network="holesky" \
---name="<Your Cluster Name>" \
---operator-enrs="<Operator1 ENR>,<Operator2 ENR>, ..<OperatorN ENR>" \
---num-validators="<The Nubmer of Validators>" \
---fee-recipient-addresses="0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8" \
---withdrawal-addresses="0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9" 
-```
+To configure MEV-boost each cluster memeber needs to edit the `.env` file and set the `BUILDER_API_ENABLED=true` and `MEVBOOST_RELAYS=` to the URL of at least one of Lido's approved MEV relays [here](https://enchanted-direction-844.notion.site/6d369eb33f664487800b0dedfe32171e?v=985cb7e521de43d78c67b7ad29adec84). Multiple relays must be separated by a comma. **The use of unapproved relays is strictly forbidden! 
+<br><br>
 
-![image](https://hackmd.io/_uploads/SJonDhHn0.png)
-
-A `cluster-definition.json` file is created in the `.charon` folder, which must be shared with all the other cluster members and they need to place it in the `.charon` folder on their machine. They must then open the file and check that their ENR is correct. 
-
-![image](https://hackmd.io/_uploads/HJthdnr3C.png)
-
-They must also confirm that the cluster threshold and the number of validators are correct and that the `Withdrawal Address` mach Lido's `Withdrawal Vault` - `0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9` and the `Fee Recipient` mach Lido's Execution Layer Rewards Vault - `0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8` as per Lido [documentation](https://docs.lido.fi/deployed-contracts/holesky/) for each validator.
-
-![image](https://hackmd.io/_uploads/SyS0YhHh0.png)
-
-After all cluster members have confirmed the cluster definition, each member starts the DKG Ceremony by executing this command:
-
-```
-docker compose run --rm charon dkg --publish
-```
-
-![image](https://hackmd.io/_uploads/SJjpohrnA.png)
-
-The `--publish` argument is optional. If omitted the cluster will not be published to the Obol API. After all cluster members have executed the command the DKG ceremony is complete. A `cluster-lock.json` file is created in the `.charon` folder as well as the `deposit-data.json` file and the `validator_keys` folder containing each operator's partial key signatures for the validators.
-
-![image](https://hackmd.io/_uploads/S1zcThHn0.png)
-
-**At this point, each operator must make a backup of the `.charon` folder and keep it safe, as validator keys can't be recreated.**
-
-## MEV Boost
-
-### What is MEV
-
-MEV stands for Maximal Extractable Value. This is the additional value that can be captured by the block proposer by optimising the selection and order of the transactions included in the proposed block. Such an optimisation often requires the use of sophisticated algorithms and access to resources not available to the regular node operator. The parties capable of doing this are called `Searchers`. They find the most profitable transactions, bundle them and provide the bundles to the `Block Builders` who assemble the bundles into a complete block. At the beginning of each epoch, node operators register the validators they control with a `Block Builder` (or `Relay`) of their choice and if they are selected to propose a block they can choose to propose the one provided by the `Relay` in exchange for an additional tip. If the operator wishes to connect to multiple `Relays` a software called `MEV-Boost` is required. Using `MEV-Boost` allows the operator to select the most profitable block from all the connected `Relays`, creating a kind of `Block Marketplace`. In the context of Lido CSM, it is worth noting that running `MEV-Boost` is a requirement. Although there are currently no penalties for proposing self-built blocks, this may change in the future.
-
-### Configuring the MEV-boost client
-
-To configure MEV-boost each cluster memeber needs to edit the `.env` file and set the `BUILDER_API_ENABLED=true` and `MEVBOOST_RELAYS=` to the URL of at least one of Lido's approved MEV relays [here](https://enchanted-direction-844.notion.site/6d369eb33f664487800b0dedfe32171e?v=985cb7e521de43d78c67b7ad29adec84). Multiple relays must be separated by a comma. **The use of unapproved relays is strictly forbidden! All cluster members must use identical configurations (same relays) to avoid missing block proposals due to a lack of consensus!**
-
-## Starting the Node
+### Step 6: Starting the Node
 
 Each cluster member should start the node with the following command:
 
@@ -224,26 +163,21 @@ docker compose up -d
 ```
 
 At this point, execution and consensus clients should start syncing, and Charon and the validator client should start waiting for the validator to be activated. 
+<br><br><br><br>
 
-## Deploy the keys to Lido CSM
+# Part 3: Deploy the keys to Lido CSM
 
-One of the cluster members opens the Lido CSM widget using this address https://csm.testnet.fi/?mode=extended. Note the `mode=extended` parameter. This allows the Lido CSM reward address to be set to the split contract created earlier. He connects the cluster Safe to the widget using `WalletConnect`.
+CSM is launching with a whitelisted set of apporved operators (Early Access). The squad member with EA should be the one to create the node through the CSM wiget. 
+<br>
+EA member will head to [CSM Extended Mode](https://csm.testnet.fi/?mode=extended) and connect their wallet. Note the `mode=extended` parameter. This allows the Lido CSM reward address to be set to the split contract created earlier. 
 
 ![image](https://hackmd.io/_uploads/HkNhlaHhA.png)
 
-Copies the connection link...
-
-![image](https://hackmd.io/_uploads/SyTJ-6r2R.png)
-
-And pastes it into the Safe `WalletConnect` screen.
-
-![image](https://hackmd.io/_uploads/HJxuZpH3R.png)
-
-He clicks on the `Create Node Operator` button...
+EA member clicks on the `Create Node Operator` button...
 
 ![image](https://hackmd.io/_uploads/BkVsfpr2R.png)
 
-Pastes the contents of the `deposit-data.json` file into the `Upload deposit data` field. There should be enough ETH/stETH/wstETH deposited in the cluster Safe to cover the bond.
+EA member pastes the contents of the `deposit-data.json` file into the `Upload deposit data` field. EA member should have enough ETH/stETH/wstETH  to cover the bond.
 
 ![image](https://hackmd.io/_uploads/BJG44pH30.png)
 
@@ -251,19 +185,12 @@ Expand the `Specify custom addresses` section...
 
 ![image](https://hackmd.io/_uploads/r1z4X6Bh0.png)
 
-Set the `Reward Address` field to the `Split` contract address and the `Manager Address` field to the `Safe` wallet address. Check that the correct addresses are set and click the `Create Node Operator` button.
+Set the `Reward Address` field to the `Split` contract address and the `Manager Address` field to the `Safe` wallet address. Verify that the `Extended` box is outlined. This ensures that the `Safe` address has the ability to change the reward address if necessary. Check that the correct addresses are set and click the `Create Node Operator` button.
 
-![image](https://hackmd.io/_uploads/Hkh34aBh0.png)
+![Screenshot 2024-10-18 at 3 41 06 PM](https://github.com/user-attachments/assets/a269104d-e298-4dd0-bf52-24311d05b956)
 
-Sign the transaction in the safe and share it with the rest of the cluster members.
 
-![image](https://hackmd.io/_uploads/r154TpSnC.png)
-
-Before signing the transaction, the remaining members should check that the transaction details contain the correct manager address (the address of the Safe) and reward address (the address of the split contract).
-
-![image](https://hackmd.io/_uploads/HkliC6Hn0.png)
-
-Once the signature threshold has been reached and the transaction has been executed, the cluster is ready for deposit from Lido CSM.
+Sign the transaction, and the cluster is ready for deposit from Lido CSM.
 
 ![image](https://hackmd.io/_uploads/HJwzJRShA.png)
 
