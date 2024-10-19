@@ -1,6 +1,6 @@
-# Deploying an Obol DV on Lido CSM using Linux (Early Access)
+ # Deploying an Obol DV on Lido CSM using Linux (Early Access)
 
-To start, we assume your hardware and Linux OS are running and that you've installed pre-requisites. We also assume you're familiar with the [Community Staking Module](https://operatorportal.lido.fi/modules/community-staking-module) (CSM) and operating a node using [Obol DVT](https://obol.org/). Also, cluster and squad are used interchangabely within this document. 
+To start, this guide assumes you're running Linux and you've installed Git and Docker. We also assume you're familiar with the [Community Staking Module](https://operatorportal.lido.fi/modules/community-staking-module) (CSM) and operating a node using [Obol DVT](https://obol.org/). Also, cluster and squad are used interchangabely within this document. 
 
 This guide uses Holesky testnet. If deploying on mainnet, please adjust required addresses. 
 <br><br><br><br>
