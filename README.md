@@ -39,10 +39,8 @@ Finally, you will need to create the `Charon` data folder and the `.env` configu
 ```
 cd charon-distributed-validator-node
 mkdir .charon
-cp .env.sample .env
+cp .env.sample.holesky .env
 ```
-
-Edit the `.env` in your favourite editor and set the variable `NETWORK=holesky`.
 
 ## Preparing the ENR (Ethereum Node Record)
 
