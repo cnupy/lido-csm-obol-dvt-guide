@@ -93,11 +93,10 @@ Finally, click the `Create Split` button, execute the transaction and share the 
 
 ## Creating the DV cluster
 
-The official Obol [documentation](https://docs.obol.org/docs/start/quickstart_group) contains detailed instructions on setting up a distributed cluster.
+The official Obol [documentation](https://docs.obol.org/docs/start/quickstart_group) contains detailed instructions on setting up a distributed cluster. Theare two main steps:
 
-### Method 1 - Creating the cluster using the DV Launchpad
-
-Unfortunately, it is possible to create a distributed cluster using the DV Launchpad only for a single validator key, as the DV Launchpad does not allow you to set the custom Withdrawal and Fee Recipient addresses when creating a cluster with more than one, which is a requirement for Lido CSM.
+1. Creating the cluster configuration
+2. Performing the Distributed Key Generation Ceremony
 
 #### Creating the cluster configuration
 
@@ -117,9 +116,11 @@ On the next page is where the cluster is configured. First, he should select the
 
 ![chrome_HeH3K82wfh](https://hackmd.io/_uploads/S1HXjsE30.png)
 
-sets the `validators` field to `1` and in the `Withdrawal Configuration` section selects the `Custom` tab, then set the `Withdrawal Address` to Lido's `Withdrawal Vault` - `0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9` and `Fee Recipient` to Lido's `Execution Layer Rewards Vault` - `0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8` as per Lido [documentation](https://docs.lido.fi/deployed-contracts/holesky/). Finally, he clicks on the `Create cluster configuration` button.
+sets the `validators` field to the nubmer of required validators and in the `Withdrawal Configuration` section selects the `Lido CSM` tab where the `Withdrawal` and `Fee Recipient` addresses are automaticaly set to Lido's `Withdrawal Vault` - `0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9` and Lido's `Execution Layer Rewards Vault` - `0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8` as per Lido [documentation](https://docs.lido.fi/deployed-contracts/holesky/). Finally, he clicks on the `Create cluster configuration` button.
 
-![chrome_Os8B70haUT](https://hackmd.io/_uploads/r1rXjsEhC.png)
+*Note: The mainnet addresses are: `Withdrawal Vault` - `0xB9D7934878B5FB9610B3fE8A5e441e8fad7E293f` and `Fee Recipient` - `0x388C818CA8B9251b393131C08a736A67ccB19297` ([source](https://docs.lido.fi/deployed-contracts))*
+
+![image](https://hackmd.io/_uploads/B1ZL9C_ekg.png)
 
 Lastly, he shares the cluster configuration link with the other cluster members.
 
@@ -132,6 +133,8 @@ All cluster members need to open the configuration link, connect their wallet, a
 ![chrome_UjIAAKB8oi](https://hackmd.io/_uploads/r1I7jjVh0.png)
 
 Then check that the `Withdrawal Address` mach Lido's `Withdrawal Vault` - `0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9` and the `Fee Recipient` mach Lido's Execution Layer Rewards Vault - `0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8` as per Lido [documentation](https://docs.lido.fi/deployed-contracts/holesky/), and finally click the `Getting Started` button.
+
+*Note: The mainnet addresses are: `Withdrawal Vault` - `0xB9D7934878B5FB9610B3fE8A5e441e8fad7E293f` and `Fee Recipient` - `0x388C818CA8B9251b393131C08a736A67ccB19297` ([source](https://docs.lido.fi/deployed-contracts))*
 
 ![chrome_J8CvZeGsub](https://hackmd.io/_uploads/HyBQjiVhA.png)
 
@@ -164,44 +167,6 @@ After executing it they should wait for all the other cluster members to connect
 ![image](https://hackmd.io/_uploads/S1zcThHn0.png)
 
 A `cluster-lock.json` file is created in the `.charon` folder as well as the `deposit-data.json` file and the `validator_keys` folder containing each operator's partial key signatures for the validators.
-
-**At this point, each operator must make a backup of the `.charon` folder and keep it safe, as validator keys can't be recreated.**
-
-### Method 2 - Creating the cluster using the Charon CLI
-
-To create a cluster with more than one validator, the `Charon` CLI is required. One of the cluster members creates the cluster definition file. To do this, he must obtain the ENRs of all the members. Once all the ENRs have been collected, the following command is executed. The 'Withdrawal Address' argument must be set to the Lido 'Withdrawal Vault' - `0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9` and the 'Fee Recipient' must be set to the Lido 'Execution Layer Rewards Vault' - `0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8` as per Lido [documentation](https://docs.lido.fi/deployed-contracts/holesky/):
-
-```
-docker compose run --rm charon create dkg \
---network="holesky" \
---name="<Your Cluster Name>" \
---operator-enrs="<Operator1 ENR>,<Operator2 ENR>, ..<OperatorN ENR>" \
---num-validators="<The Nubmer of Validators>" \
---fee-recipient-addresses="0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8" \
---withdrawal-addresses="0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9" 
-```
-
-![image](https://hackmd.io/_uploads/SJonDhHn0.png)
-
-A `cluster-definition.json` file is created in the `.charon` folder, which must be shared with all the other cluster members and they need to place it in the `.charon` folder on their machine. They must then open the file and check that their ENR is correct. 
-
-![image](https://hackmd.io/_uploads/HJthdnr3C.png)
-
-They must also confirm that the cluster threshold and the number of validators are correct and that the `Withdrawal Address` mach Lido's `Withdrawal Vault` - `0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9` and the `Fee Recipient` mach Lido's Execution Layer Rewards Vault - `0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8` as per Lido [documentation](https://docs.lido.fi/deployed-contracts/holesky/) for each validator.
-
-![image](https://hackmd.io/_uploads/SyS0YhHh0.png)
-
-After all cluster members have confirmed the cluster definition, each member starts the DKG Ceremony by executing this command:
-
-```
-docker compose run --rm charon dkg --publish
-```
-
-![image](https://hackmd.io/_uploads/SJjpohrnA.png)
-
-The `--publish` argument is optional. If omitted the cluster will not be published to the Obol API. After all cluster members have executed the command the DKG ceremony is complete. A `cluster-lock.json` file is created in the `.charon` folder as well as the `deposit-data.json` file and the `validator_keys` folder containing each operator's partial key signatures for the validators.
-
-![image](https://hackmd.io/_uploads/S1zcThHn0.png)
 
 **At this point, each operator must make a backup of the `.charon` folder and keep it safe, as validator keys can't be recreated.**
 
@@ -241,19 +206,22 @@ And pastes it into the Safe `WalletConnect` screen.
 
 He clicks on the `Create Node Operator` button...
 
-![image](https://hackmd.io/_uploads/BkVsfpr2R.png)
+![image](https://hackmd.io/_uploads/H1g_Q0dlyl.png)
+
 
 Pastes the contents of the `deposit-data.json` file into the `Upload deposit data` field. There should be enough ETH/stETH/wstETH deposited in the cluster Safe to cover the bond.
 
-![image](https://hackmd.io/_uploads/BJG44pH30.png)
+![image](https://hackmd.io/_uploads/rkRYzRuxkg.png)
+
 
 Expand the `Specify custom addresses` section...
 
-![image](https://hackmd.io/_uploads/r1z4X6Bh0.png)
+![image](https://hackmd.io/_uploads/Syj0MCOeyg.png)
+
 
 Set the `Reward Address` field to the `Split` contract address and the `Manager Address` field to the `Safe` wallet address. Check that the correct addresses are set and click the `Create Node Operator` button.
 
-![image](https://hackmd.io/_uploads/Hkh34aBh0.png)
+![image](https://hackmd.io/_uploads/rk_kRauekg.png)
 
 Sign the transaction in the safe and share it with the rest of the cluster members.
 
