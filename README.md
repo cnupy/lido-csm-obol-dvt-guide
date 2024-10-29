@@ -190,7 +190,7 @@ At this point, execution and consensus clients should start syncing, and Charon 
 
 ## Deploy the keys to Lido CSM
 
-One of the cluster members opens the Lido CSM widget using this address https://csm.testnet.fi/?mode=extended. Note the `mode=extended` parameter. This allows the Lido CSM reward address to be set to the split contract created earlier. He connects the cluster Safe to the widget using `WalletConnect`.
+One of the cluster members opens the Lido CSM widget using this address https://csm.testnet.fi. He connects the cluster Safe to the widget using `WalletConnect`.
 
 ![image](https://hackmd.io/_uploads/HkNhlaHhA.png)
 
